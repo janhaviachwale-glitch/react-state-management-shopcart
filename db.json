@@ -1,0 +1,41 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Wireless Headphones",
+      "description": "Comfortable wireless headphones with clear sound.",
+      "price": 2499,
+      "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600",
+      "category": "Electronics",
+      "stock": 10
+    },
+    {
+      "id": 2,
+      "name": "Smart Watch",
+      "description": "A stylish smartwatch for everyday use.",
+      "price": 1899,
+      "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600",
+      "category": "Accessories",
+      "stock": 8
+    },
+    {
+      "id": 3,
+      "name": "Running Shoes",
+      "description": "Lightweight shoes designed for daily comfort.",
+      "price": 3299,
+      "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600",
+      "category": "Fashion",
+      "stock": 12
+    },
+    {
+      "id": 4,
+      "name": "Travel Backpack",
+      "description": "Spacious backpack for work and travel.",
+      "price": 1499,
+      "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600",
+      "category": "Accessories",
+      "stock": 15
+    }
+  ],
+  "orders": []
+}
