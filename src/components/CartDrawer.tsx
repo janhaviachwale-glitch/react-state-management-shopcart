@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react'
+import { useMachine } from '@xstate/react'
 import { useCartStore } from '../store/cartStore'
+import { checkoutMachine } from '../machines/checkoutMachine'
 import CartItemsList from './CartItemsList'
 
 interface CartDrawerProps {
@@ -7,8 +8,9 @@ interface CartDrawerProps {
 }
 
 function CartDrawer({ onClose }: CartDrawerProps) {
+  const [snapshot, send] = useMachine(checkoutMachine)
+
   const cartItems = useCartStore((state) => state.cartItems)
-  const checkout = useCartStore((state) => state.checkout)
 
   const cartTotal = cartItems.reduce(
     (total, item) =>
@@ -16,44 +18,21 @@ function CartDrawer({ onClose }: CartDrawerProps) {
     0,
   )
 
-  const [isCheckingOut, setIsCheckingOut] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
+  const isCheckingOut = snapshot.matches('processing')
+  const isSuccessful = snapshot.matches('success')
+  const isFailed = snapshot.matches('failure')
+  const isCancelled = snapshot.matches('cancelled')
 
-  const controllerRef = useRef<AbortController | null>(null)
-
-  const handleCheckout = async () => {
-    const controller = new AbortController()
-    controllerRef.current = controller
-
-    setIsCheckingOut(true)
-    setMessage('')
-    setError('')
-
-    try {
-      const result = await checkout(controller.signal)
-
-      if (result.success) {
-        setMessage(result.message)
-      } else {
-        setError(result.message)
-      }
-    } catch (err) {
-      if (controller.signal.aborted) {
-        setMessage('Checkout cancelled.')
-      } else {
-        setError(
-          err instanceof Error ? err.message : 'Checkout failed.',
-        )
-      }
-    } finally {
-      setIsCheckingOut(false)
-      controllerRef.current = null
-    }
+  const handleCheckout = () => {
+    send({ type: 'CHECKOUT' })
   }
 
   const handleCancelCheckout = () => {
-    controllerRef.current?.abort()
+    send({ type: 'CANCEL' })
+  }
+
+  const handleRetry = () => {
+    send({ type: 'RETRY' })
   }
 
   return (
@@ -78,8 +57,27 @@ function CartDrawer({ onClose }: CartDrawerProps) {
             Total: ₹{cartTotal.toLocaleString('en-IN')}
           </h3>
 
-          {message && <p className="success">{message}</p>}
-          {error && <p className="error">{error}</p>}
+          {isCheckingOut && (
+            <p>Processing your order...</p>
+          )}
+
+          {isSuccessful && (
+            <p className="success">
+              {snapshot.context.result?.message}
+            </p>
+          )}
+
+          {isFailed && (
+            <p className="error">
+              {snapshot.context.error}
+            </p>
+          )}
+
+          {isCancelled && (
+            <p className="success">
+              Checkout cancelled.
+            </p>
+          )}
 
           <button
             type="button"
@@ -95,6 +93,16 @@ function CartDrawer({ onClose }: CartDrawerProps) {
               onClick={handleCancelCheckout}
             >
               Cancel Checkout
+            </button>
+          )}
+
+          {isFailed && (
+            <button
+              type="button"
+              onClick={handleRetry}
+              disabled={cartItems.length === 0}
+            >
+              Try Again
             </button>
           )}
         </div>
