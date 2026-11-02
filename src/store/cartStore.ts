@@ -1,10 +1,5 @@
 import { create } from 'zustand'
-import type {
-  CartItem,
-  CheckoutResult,
-  Order,
-  Product,
-} from '../types'
+import type { CartItem, Product } from '../types'
 
 interface CartStore {
   cartItems: CartItem[]
@@ -13,10 +8,9 @@ interface CartStore {
   decreaseQuantity: (productId: number) => void
   removeFromCart: (productId: number) => void
   clearCart: () => void
-  checkout: (signal: AbortSignal) => Promise<CheckoutResult>
 }
 
-export const useCartStore = create<CartStore>((set, get) => ({
+export const useCartStore = create<CartStore>((set) => ({
   cartItems: [],
 
   addToCart: (product) => {
@@ -92,56 +86,5 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   clearCart: () => {
     set({ cartItems: [] })
-  },
-
-  checkout: async (signal) => {
-    const { cartItems } = get()
-
-    if (cartItems.length === 0) {
-      return {
-        success: false,
-        message: 'Your cart is empty.',
-      }
-    }
-
-    const total = cartItems.reduce(
-      (sum, item) => sum + item.product.price * item.quantity,
-      0,
-    )
-
-    const order: Order = {
-      items: cartItems.map((item) => ({
-        productId: item.product.id,
-        name: item.product.name,
-        price: item.product.price,
-        quantity: item.quantity,
-      })),
-      total,
-      status: 'completed',
-      createdAt: new Date().toISOString(),
-    }
-
-    const response = await fetch('/api/orders', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(order),
-      signal,
-    })
-
-    if (!response.ok) {
-      throw new Error('Checkout failed. Please try again.')
-    }
-
-    const savedOrder: Order = await response.json()
-
-    set({ cartItems: [] })
-
-    return {
-      success: true,
-      message: 'Order placed successfully!',
-      order: savedOrder,
-    }
   },
 }))
