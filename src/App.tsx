@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
 import type { Product } from './types'
+import ProductCard from './components/ProductCard'
+import CartBadge from './components/CartBadge'
+import CartDrawer from './components/CartDrawer'
 import './App.css'
 
 function App() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [isCartOpen, setIsCartOpen] = useState(false)
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -31,8 +35,12 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>ShopCart</h1>
-        <p>Simple shopping, smarter checkout.</p>
+        <div>
+          <h1>ShopCart</h1>
+          <p>Simple shopping, smarter checkout.</p>
+        </div>
+
+        <CartBadge onClick={() => setIsCartOpen(true)} />
       </header>
 
       <main className="main">
@@ -51,24 +59,19 @@ function App() {
           {!loading && !error && (
             <div className="product-grid">
               {products.map((product) => (
-                <article className="product-card" key={product.id}>
-                  <img src={product.image} alt={product.name} />
-                  <div className="product-info">
-                    <span className="category">{product.category}</span>
-                    <h3>{product.name}</h3>
-                    <p>{product.description}</p>
-                    <strong>₹{product.price.toLocaleString('en-IN')}</strong>
-                    <p>Available stock: {product.stock}</p>
-                  </div>
-                </article>
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
         </section>
       </main>
 
+      {isCartOpen && (
+        <CartDrawer onClose={() => setIsCartOpen(false)} />
+      )}
+
       <footer className="footer">
-        <p>ShopCart State Management Assignment</p>
+        <p>ShopCart State Management</p>
       </footer>
     </div>
   )
